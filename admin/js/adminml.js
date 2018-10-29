@@ -29,7 +29,7 @@ jQuery(document).ready(function () {
 
 
     // Add click event for media insert button.
-    $( '#ml-button-insert' ).off('click').on('click', function () {
+	$(document).off('click').on('click', '#ml-button-insert', function () {
 
         var selected_images = $( '.ui-selected' ).map(function (index, element) {
             return $( element ).data( 'id' );
@@ -90,12 +90,19 @@ jQuery(document).ready(function () {
                     }
                     //TODO handle promises results/errors better.
                     Promise.all(promises).then(function (values) {
-                        parent.send_to_editor(values.join(' '));
+						// If this page contains a wp editor then insert the selected image inside the editor.
+						if ( "function" === typeof parent.send_to_editor ) {
+							parent.send_to_editor(values.join(' '));
+						}
                     });
                 }
             } catch (e) {
             }
             $( '#ml_spinner' ).removeClass('is-active');
+			// If this is not a page with a wp editor, then move to the Media Library page.
+			if ( "function" !== typeof parent.send_to_editor ) {
+				parent.window.location.replace('/wp-admin/upload.php');
+			}
 
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.log(errorThrown); //eslint-disable-line no-console

@@ -81,19 +81,19 @@ jQuery(document).ready(function () {
                             image_alt: alt_text,
                         };
 
-                        promises.push(wp.media.post('send-attachment-to-editor', {
-                            nonce: wp.media.view.settings.nonce.sendToEditor,
-                            attachment: options,
-                            html: '',
-                            post_id: wp.media.view.settings.post.id
-                        }));
+                        // If this page contains a wp editor then insert the selected image inside the editor.
+                        if ( "function" === typeof parent.send_to_editor ) {
+						    promises.push(wp.media.post('send-attachment-to-editor', {
+							    nonce: wp.media.view.settings.nonce.sendToEditor,
+                                attachment: options,
+                                html: '',
+                                post_id: wp.media.view.settings.post.id
+                            }));
+                        }
                     }
                     //TODO handle promises results/errors better.
                     Promise.all(promises).then(function (values) {
-                        // If this page contains a wp editor then insert the selected image inside the editor.
-                        if ( "function" === typeof parent.send_to_editor ) {
-						    parent.send_to_editor(values.join(' '));
-						}
+                        parent.send_to_editor(values.join(' '));
                     });
                 }
             } catch (e) {

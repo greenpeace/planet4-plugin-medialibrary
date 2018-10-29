@@ -30,7 +30,7 @@ jQuery(document).ready(function () {
 
     // Hide the 'Insert to post' button.
     $(document).on('click', '.media-menu-item:last-of-type', function() {
-		$( '.media-button-insert').css('visibility', 'hidden');
+        $( '.media-button-insert').css('visibility', 'hidden');
     });
 });
 

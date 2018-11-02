@@ -101,7 +101,7 @@ jQuery(document).ready(function () {
             $( '#ml_spinner' ).removeClass('is-active');
             // If this is not a page with a wp editor, then move to the Media Library page.
             if ( "function" !== typeof parent.send_to_editor ) {
-                parent.window.location.replace('/wp-admin/upload.php');
+                parent.window.location.replace('./upload.php');
             }
 
         }).fail(function (jqXHR, textStatus, errorThrown) {

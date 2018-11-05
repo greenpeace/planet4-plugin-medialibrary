@@ -2,9 +2,10 @@ var $ = jQuery;
 
 jQuery(document).ready(function () {
     $(document).on('click', '.switchtoml', function (e) {
+		// Click the GPI Media Library tab only if we clicked the Upload from GPI Media Library button from a normal page (not a modal).
         if ( 0 === $(this).closest('.media-modal').length ) {
-			$('.media-frame-menu .media-menu-item:last-of-type').click();       // Click the GPI Media Library tab.
-		}
+            $('.media-frame-menu .media-menu-item:last-of-type').click();
+        }
 		$( '.media-button-select' ).prop('disabled', true);
         $( '.uploader-inline' ).hide();
         $( '.media-frame-content', $('.supports-drag-drop:last-of-type') ).append('<span id="ml_spinner" class="spinner ml_spinner is-active"></span>');
@@ -34,14 +35,10 @@ jQuery(document).ready(function () {
 
     // Hide the 'Insert to post' button.
     $(document).on('click', '.media-frame-menu .media-menu-item:last-of-type', function() {
-    	if ( 0 === $('#tmpl-gallery-settings').length ) {
-			$('.media-button-insert').css('visibility', 'hidden');
-		}
+        if ( 0 === $('#tmpl-gallery-settings').length ) {
+            $('.media-button-insert').css('visibility', 'hidden');
+        }
     });
-
-    // $(document).off('click').on('click', '.media-router .media-menu-item:first', function() {
-	// 	$('.media-button-select').prop('disabled', true);
-    // });
 });
 
 // Get file name from full url/path.
@@ -163,12 +160,12 @@ $(document).off('keyup').on('keyup', '.ml-search', function() {
             },
             dataType: 'html'
         }).done(function ( response ) {
-			$( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
+            $( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
             // Show the search query response.
             $( '.ml-media-list' ).html( response );
         }).fail(function ( jqXHR, textStatus, errorThrown ) {
             console.log(errorThrown); //eslint-disable-line no-console
-			$( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
+            $( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
         });
     }
 });

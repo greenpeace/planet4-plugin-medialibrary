@@ -82,14 +82,12 @@ jQuery(document).ready(function () {
                         };
 
                         // If this page contains a wp editor then insert the selected image inside the editor.
-                        //if ( "function" === typeof parent.send_to_editor ) {
-                            promises.push(wp.media.post('send-attachment-to-editor', {
-                                nonce: wp.media.view.settings.nonce.sendToEditor,
-                                attachment: options,
-                                html: '',
-                                post_id: wp.media.view.settings.post.id
-                            }));
-                        //}
+                        promises.push(wp.media.post('send-attachment-to-editor', {
+                            nonce: wp.media.view.settings.nonce.sendToEditor,
+                            attachment: options,
+                            html: '',
+                            post_id: wp.media.view.settings.post.id
+                        }));
                     }
                     //TODO handle promises results/errors better.
                     Promise.all(promises).then(function (values) {

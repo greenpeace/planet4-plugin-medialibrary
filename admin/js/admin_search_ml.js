@@ -1,10 +1,13 @@
 var $ = jQuery;
 
 jQuery(document).ready(function () {
-    $(document).on('click', '.switchtoml',function (e) {
-        $( '.media-menu-item:last-of-type' ).click();       // Click the GPI Media Library tab.
+    $(document).on('click', '.switchtoml', function (e) {
+        if ( 0 === $(this).closest('.media-modal').length ) {
+			$('.media-frame-menu .media-menu-item:last-of-type').click();       // Click the GPI Media Library tab.
+		}
+		$( '.media-button-select' ).prop('disabled', true);
         $( '.uploader-inline' ).hide();
-        $( '.media-frame-content' ).append('<span class="spinner ml_spinner is-active"></span>');
+        $( '.media-frame-content', $('.supports-drag-drop:last-of-type') ).append('<span id="ml_spinner" class="spinner ml_spinner is-active"></span>');
         var reset_page = 1;
 
         $.ajax({
@@ -20,18 +23,25 @@ jQuery(document).ready(function () {
         }).done(function ( response ) {
             $( '.ml_spinner' ).remove();
             // Show the search query response.
-            $( '.media-frame-content' ).append( response );
+            $( '.media-frame-content:last' ).append( response );
             $( '.ml-media-sidebar' ).hide();
 
         }).fail(function ( jqXHR, textStatus, errorThrown ) {
             console.log(errorThrown); //eslint-disable-line no-console
+			$( '.ml_spinner' ).remove();
         });
     });
 
     // Hide the 'Insert to post' button.
-    $(document).on('click', '.media-menu-item:last-of-type', function() {
-        $( '.media-button-insert').css('visibility', 'hidden');
+    $(document).on('click', '.media-frame-menu .media-menu-item:last-of-type', function() {
+    	if ( 0 === $('#tmpl-gallery-settings').length ) {
+			$('.media-button-insert').css('visibility', 'hidden');
+		}
     });
+
+    // $(document).off('click').on('click', '.media-router .media-menu-item:first', function() {
+	// 	$('.media-button-select').prop('disabled', true);
+    // });
 });
 
 // Get file name from full url/path.
@@ -94,8 +104,8 @@ $(document).off('click').on('click', '#ml-button-insert', function () {
     // media_details_flag value (1 = Default Title & Description, 2 = Original language Title & Description).
     var media_details_flag = $( '.media_details_flag:checked' ).val();
 
-    $( '#ml-button-insert' ).attr('disabled', true);
-    $( '#ml_loader' ).addClass('is-active');
+    $( '#ml-button-insert' ).prop('disabled', true);
+    $( '#ml_loader', $('.supports-drag-drop:last-of-type') ).addClass('is-active');
 
     $.ajax({
         url: media_library_params.ajaxurl,
@@ -114,7 +124,7 @@ $(document).off('click').on('click', '#ml-button-insert', function () {
         // Set the media name in search field & trigger the search media event.
         $( '#media-search-input' ).val(ml_selected_image).keyup();
 
-        $( '#ml_loader' ).removeClass('is-active');
+		$( '#ml_loader', $('.supports-drag-drop:last-of-type') ).removeClass('is-active');
 
         // Remove the ml-media-panel and ml-media-sidebar div's .
         $( '.ml-media-panel' ).remove();
@@ -122,7 +132,7 @@ $(document).off('click').on('click', '#ml-button-insert', function () {
 
     }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log(errorThrown); //eslint-disable-line no-console
-        $('#ml_loader').removeClass('is-active');
+		$( '#ml_loader', $('.supports-drag-drop:last-of-type') ).removeClass('is-active');
 
         // Remove the ml-media-panel and ml-media-sidebar div's .
         $( '.ml-media-panel' ).remove();
@@ -133,13 +143,14 @@ $(document).off('click').on('click', '#ml-button-insert', function () {
 var scroll_more = 0;
 
 // Search media library images.
-$(document).on('keyup', '.ml-search', function() {
+$(document).off('keyup').on('keyup', '.ml-search', function() {
     if (this.value.length > 3) {
+        var $search = $(this);
         var reset_page = 1;
         scroll_more = 0;
         $( '#ml_current_page' ).val( reset_page );
 
-        $( '#ml_loader' ).addClass('is-active');
+        $( '#ml_loader', $search.closest('.media-modal') ).addClass('is-active');
 
         $.ajax({
             url: media_library_params.ajaxurl,
@@ -152,12 +163,12 @@ $(document).on('keyup', '.ml-search', function() {
             },
             dataType: 'html'
         }).done(function ( response ) {
-            $( '#ml_loader' ).removeClass('is-active');
+			$( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
             // Show the search query response.
             $( '.ml-media-list' ).html( response );
         }).fail(function ( jqXHR, textStatus, errorThrown ) {
             console.log(errorThrown); //eslint-disable-line no-console
-            $( '#ml_loader' ).removeClass('is-active');
+			$( '#ml_loader', $search.closest('.media-modal') ).removeClass('is-active');
         });
     }
 });
@@ -170,7 +181,7 @@ function scroll_ml_images() {
         scroll_more = 1;
         var next_page = parseInt( $( '#ml_current_page' ).val() ) + 1;
         $( '#ml_current_page' ).val( next_page );
-        $( '#ml_loader' ).addClass('is-active');
+        $( '#ml_loader', $('.supports-drag-drop:last-of-type') ).addClass('is-active');
 
         $.ajax({
             url: media_library_params.ajaxurl,
@@ -183,18 +194,18 @@ function scroll_ml_images() {
             },
             dataType: 'html'
         }).done(function ( response ) {
-            $( '#ml_loader' ).removeClass('is-active');
+            $( '#ml_loader', $('.supports-drag-drop:last-of-type') ).removeClass('is-active');
             // Append the response at the bottom of the results.
             $( '.ml-media-list' ).append( response );
 
             // Add a throttle to avoid multiple scroll events from firing together.
             setTimeout(function () {
                 scroll_more = 0;
-            }, 500);
+            }, 1500);
         }).fail(function ( jqXHR, textStatus, errorThrown ) {
             console.log(errorThrown); //eslint-disable-line no-console
             scroll_more = 0;
-            $( '#ml_loader' ).removeClass('is-active');
+            $( '#ml_loader', $('.supports-drag-drop:last-of-type') ).removeClass('is-active');
         });
     }
 }

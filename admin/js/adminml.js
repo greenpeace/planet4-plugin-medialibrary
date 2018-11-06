@@ -20,7 +20,7 @@ jQuery(document).ready(function () {
 
     // Add click event for clear selected images button.
     $( '#clear_images' ).on('click', function () {
-        $( '#ml-button-insert' ).attr('disabled', true);
+        $( '#ml-button-insert' ).prop('disabled', true);
         $( '#selectable-images li' ).removeClass('ui-selected');
         $( '#images_count' ).html('0');
         // On clear image click, hide attachement details panel.
@@ -109,7 +109,7 @@ jQuery(document).ready(function () {
     });
 
     // Search media library images.
-	$(document).off('keyup').on('keyup', '.ml-search', function() {
+    $(document).off('keyup').on('keyup', '.ml-search', function() {
         if (this.value.length > 3) {
             var reset_page = 1;
             scroll_more = 0;

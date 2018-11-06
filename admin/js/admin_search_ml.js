@@ -178,7 +178,7 @@ function scroll_ml_images() {
         scroll_more = 1;
         var $ml_current_page = $( '#ml_current_page' );
         var next_page = parseInt( $ml_current_page.val() ) + 1;
-		$ml_current_page.val( next_page );
+        $ml_current_page.val( next_page );
         $( '#ml_loader', $('.supports-drag-drop:last-of-type') ).addClass('is-active');
 
         $.ajax({

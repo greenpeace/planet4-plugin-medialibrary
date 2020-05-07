@@ -43,8 +43,15 @@ if ( ! class_exists( 'GPI_Media_Library_Controller' ) ) {
 		 * Add GPI Media Library upload button in WP media popup upload UI.
 		 */
 		public function media_library_post_upload_ui() {
+			global $pagenow;
 			$this->load_ml_assets();
-			print '<button id="db-upload-btn" class="button media-button button-primary button-large add_media switchtoml">' . esc_html__( 'Upload From GPI Media Library', 'planet4-medialibrary' ) . '</button>';
+			$classes = 'button media-button button-primary button-large add_media switchtoml';
+
+			// Add the insert media class only when not in the editor, i.e. when on the "Media > Add New" page.
+			if ( ( 'post.php' !== $pagenow ) && ( ! in_array( get_post_type(), [ 'post', 'page', 'campaign' ], true ) ) ) {
+				$classes .= ' insert-media';
+			}
+			print '<button id="db-upload-btn" class="' . $classes . '">' . esc_html__( 'Upload From GPI Media Library', 'planet4-medialibrary' ) . '</button>';
 		}
 
 		/**

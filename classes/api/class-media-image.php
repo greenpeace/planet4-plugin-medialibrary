@@ -79,6 +79,10 @@ class MediaImage implements \JsonSerializable {
 	 */
 	private $original_language_description;
 
+  public static function from_api_response( array $response ) {
+    return ( new MediaImageMapper() )->get_from_array( $response[0] );
+  }
+
 	/**
 	 * Retrieves a attachement ID.
 	 *

@@ -68,58 +68,55 @@ if ( ! class_exists( 'MediaLibraryApi_Controller' ) ) {
 		 * @return string The string of API token fetch from ML.
 		 */
 		public function authenticate( $p4ml_login_id, $p4ml_password ) {
+			if ( ! isset( $p4ml_login_id ) || ! $p4ml_login_id || ! isset( $p4ml_password ) || ! $p4ml_password ) {
+        $this->warning( __( 'Plugin Settings are not configured well!', 'planet4-medialibrary' ) );
+        return '';
+      }
 
-			$url           = self::ML_AUTH_URL;
-			$ml_auth_token = '';
+      // Check if the authentication API call is cached.
+      $from_cache = get_transient( 'ml_auth_token' );
+      if ( false !== $from_cache ) {
+        return $from_cache;
+      }
 
-			if ( isset( $p4ml_login_id ) && $p4ml_login_id && isset( $p4ml_password ) && $p4ml_password ) {
-				// Check if the authentication API call is cached.
-				$ml_auth_token = get_transient( 'ml_auth_token' );
-				if ( false === $ml_auth_token ) {
+      // With the safe version of wp_remote_{VERB) functions, the URL is validated to avoid redirection and request forgery attacks.
+      $response = wp_safe_remote_post(
+        self::ML_AUTH_URL,
+        [
+          'body'      => [
+            'Login'    => $p4ml_login_id,
+            'Password' => $p4ml_password,
+            'format'   => 'json',
+          ],
+          'timeout'   => self::ML_CALL_TIMEOUT,
+          'sslverify' => false,
+        ]
+      );
 
-					// With the safe version of wp_remote_{VERB) functions, the URL is validated to avoid redirection and request forgery attacks.
-					$response = wp_safe_remote_post(
-						$url,
-						[
-							'body'      => [
-								'Login'    => $p4ml_login_id,
-								'Password' => $p4ml_password,
-								'format'   => 'json',
-							],
-							'timeout'   => self::ML_CALL_TIMEOUT,
-							'sslverify' => false,
+      // Authentication failure.
+      if ( is_wp_error( $response ) ) {
+        $response = $response->get_error_message() . ' ' . $response->get_error_code();
 
-						]
-					);
+      } elseif ( is_array( $response ) && \WP_Http::ACCEPTED !== $response['response']['code'] ) {
+        $response = $response['response']['message'] . ' ' . $response['response']['code'];
+      }
 
-					// Authentication failure.
-					if ( is_wp_error( $response ) ) {
-						$response = $response->get_error_message() . ' ' . $response->get_error_code();
+      if ( ! is_array( $response ) || ! ( $response['body'] ) ) {
+        $this->error( $response );
+        return '';
+      }
 
-					} elseif ( is_array( $response ) && \WP_Http::ACCEPTED !== $response['response']['code'] ) {
-						$response = $response['response']['message'] . ' ' . $response['response']['code'];
-					}
+      // Communication with ML API is authenticated.
+      $body          = json_decode( $response['body'], true );
+      $ml_auth_token = $body['APIResponse']['Token'];
 
-					if ( is_array( $response ) && $response['body'] ) {
-						// Communication with ML API is authenticated.
-						$body          = json_decode( $response['body'], true );
-						$ml_auth_token = $body['APIResponse']['Token'];
-						// Time period in seconds to keep the ml_auth_token before refreshing. Typically 1 hour.
-						if ( isset( $body['APIResponse']['TimeoutPeriodMinutes'] ) ) {
-							$expiration = (int) ( $body['APIResponse']['TimeoutPeriodMinutes'] ) * 60;
-						} else {
-							$expiration = 60 * 60; // Default expirations in 1hr.
-						}
-						set_transient( 'ml_auth_token', $ml_auth_token, $expiration );
-					} else {
-						$this->error( $response );
-					}
-				}
-			} else {
-				$this->warning( __( 'Plugin Settings are not configured well!', 'planet4-medialibrary' ) );
-			}
+      // Time period in seconds to keep the ml_auth_token before refreshing. Typically 1 hour.
+      $expiration_minutes = $body['APIResponse']['TimeoutPeriodMinutes'] ?? 60;
+      $expiration = $expiration_minutes * 60;
 
-			return $ml_auth_token;
+      set_transient( 'ml_auth_token', $ml_auth_token, $expiration );
+
+      return $ml_auth_token;
 		}
 
 		/**
@@ -191,39 +188,39 @@ if ( ! class_exists( 'MediaLibraryApi_Controller' ) ) {
 		 */
 		public function get_media_details( $details ) {
 
-			$media_details = [];
+			if ( ! is_array( $details ) || ! $details ) {
+        return [];
+      }
 
-			if ( is_array( $details ) && $details ) {
-				$media_details['image_title']   = $details['Title'];
-				$media_details['image_caption'] = $details['Caption'];
-				$media_details['image_credit']  = $details['copyright'];
-				$media_details['gpml_image_id'] = $details['SystemIdentifier'];
+      $media_details = [];
 
-				if ( $details['Path_TR7']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR7']['URI'];
-				} elseif ( $details['Path_TR1_COMP_SMALL']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR1_COMP_SMALL']['URI'];
-				} elseif ( $details['Path_TR1']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR1']['URI'];
-				} elseif ( $details['Path_TR4']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR4']['URI'];
-				} elseif ( $details['Path_TR1_COMP']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR1_COMP']['URI'];
-				} elseif ( $details['Path_TR2']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR2']['URI'];
-				} elseif ( $details['Path_TR3']['URI'] ) {
-					$media_details['image_url'] = $details['Path_TR3']['URI'];
-				}
+      $media_details['image_title']   = $details['Title'];
+      $media_details['image_caption'] = $details['Caption'];
+      $media_details['image_credit']  = $details['copyright'];
+      $media_details['gpml_image_id'] = $details['SystemIdentifier'];
 
-				$media_details['ori_lang_title'] = $details['original-language-title'];
-				$media_details['ori_lang_desc']  = $details['original-language-description'];
-				$media_details['restrictions']   = $details['restrictions'];
+      $media_details =
+        $details['Path_TR7']['URI']
+        ?? $details['Path_TR1_COMP_SMALL']['URI']
+        ?? $details['Path_TR1']['URI']
+        ?? $details['Path_TR4']['URI']
+        ?? $details['Path_TR1_COMP']['URI']
+        ?? $details['Path_TR2']['URI']
+        ?? $details['Path_TR3']['URI']
+      ;
 
-				// Filter file name for extra url params.
-				$media_details['image_url'] = str_replace( strstr( $media_details['image_url'], '?' ), '', $media_details['image_url'] );
-			}
+      $media_details['ori_lang_title'] = $details['original-language-title'];
+      $media_details['ori_lang_desc']  = $details['original-language-description'];
+      $media_details['restrictions']   = $details['restrictions'];
 
-			return $media_details;
+      // Filter file name for extra url params.
+      $media_details['image_url'] = str_replace(
+        strstr( $media_details['image_url'], '?' ),
+        '',
+        $media_details['image_url']
+      );
+
+      return $media_details;
 		}
 
 		/**
@@ -330,25 +327,27 @@ if ( ! class_exists( 'MediaLibraryApi_Controller' ) ) {
 				]
 			);
 
-			if ( is_wp_error( $response ) ) {
-				return $response->get_error_message() . ' ' . $response->get_error_code();
+      if ( is_wp_error( $response ) ) {
+        return $response->get_error_message() . ' ' . $response->get_error_code();
 
-			} elseif ( is_array( $response ) && \WP_Http::OK !== $response['response']['code'] ) {
-				return $response['response']['message'] . ' ' . $response['response']['code'];         // Authentication failed.
-			}
+      }
 
-			if ( is_array( $response ) && $response['body'] ) {
-				$image_data = json_decode( $response['body'], true );
-				if ( isset( $image_data['APIResponse']['Items'] ) ) {
-					foreach ( $image_data['APIResponse']['Items'] as $key => $details ) {
-						$media_list[ $key ] = ( $details );
-					}
-				}
-			} else {
-				return $response['APIResponse']['Code'];
-			}
+      if ( is_array( $response ) && \WP_Http::OK !== $response['response']['code'] ) {
+        return $response['response']['message'] . ' ' . $response['response']['code'];         // Authentication failed.
+      }
 
-			return $media_list;
+      if ( ! is_array( $response ) || ! ( $response['body'] ) ) {
+        return $response['APIResponse']['Code'];
+      }
+
+      $image_data = json_decode( $response['body'], true );
+      if ( isset( $image_data['APIResponse']['Items'] ) ) {
+        foreach ( $image_data['APIResponse']['Items'] as $key => $details ) {
+          $media_list[ $key ] = ( $details );
+        }
+      }
+
+      return $media_list;
 		}
 	}
 }

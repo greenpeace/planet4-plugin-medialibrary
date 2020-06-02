@@ -37,64 +37,68 @@ class MediaHelper {
 		// Upload file into WP upload dir.
 		$upload_file = wp_upload_bits( $filename, null, file_get_contents( $url, false, $context ) );
 
-		if ( ! $upload_file['error'] ) {
-			$wp_filetype = wp_check_filetype( $filename, null );
+		if ( $upload_file['error'] ) {
+      return $upload_file['error'];
+    }
 
-			if ( 1 === $media_details_flag ) {
-				// Prepare an array of post data for the attachment.
-				$attachment = [
-					'post_mime_type' => $wp_filetype['type'],
-					'post_title'     => preg_replace( '/\.[^.]+$/', '', $image->get_title() ),
-					'post_content'   => $image->get_caption(),
-					'post_status'    => 'inherit',
-					'post_excerpt'   => $image->get_caption(),
-				];
+    $wp_filetype   = wp_check_filetype( $filename, null );
 
-				// Check title has fullstop at the end, if not then add it.
-				$alt_text = '.' === substr( $image->get_title(), -1 ) ? $image->get_title() : $image->get_title() . '.';
-			} else {
-				// Prepare an array of post data for the attachment.
-				$attachment = [
-					'post_mime_type' => $wp_filetype['type'],
-					'post_title'     => preg_replace( '/\.[^.]+$/', '', $image->get_original_language_title() ),
-					'post_content'   => $image->get_original_language_desc(),
-					'post_status'    => 'inherit',
-					'post_excerpt'   => $image->get_original_language_desc(),
-				];
+    if ( 1 === $media_details_flag ) {
+      // Prepare an array of post data for the attachment.
+      $attachment = [
+        'post_mime_type' => $wp_filetype['type'],
+        'post_title'     => preg_replace( '/\.[^.]+$/', '', $image->get_title() ),
+        'post_content'   => $image->get_caption(),
+        'post_status'    => 'inherit',
+        'post_excerpt'   => $image->get_caption(),
+      ];
 
-				// Check title has fullstop at the end, if not then add it.
-				$alt_text = '.' === substr( $image->get_original_language_title(), -1 ) ? $image->get_original_language_title() : $image->get_original_language_title() . '.';
-			}
+      // Check title has fullstop at the end, if not then add it.
+      $alt_text = '.' === substr( $image->get_title(), -1 ) ? $image->get_title() : $image->get_title() . '.';
+    } else {
+      // Prepare an array of post data for the attachment.
+      $attachment = [
+        'post_mime_type' => $wp_filetype['type'],
+        'post_title'     => preg_replace( '/\.[^.]+$/', '', $image->get_original_language_title() ),
+        'post_content'   => $image->get_original_language_desc(),
+        'post_status'    => 'inherit',
+        'post_excerpt'   => $image->get_original_language_desc(),
+      ];
 
-			$attachment_id = wp_insert_attachment( $attachment, $upload_file['file'], 0, true );
+      // Check title has fullstop at the end, if not then add it.
+      $alt_text = '.' === substr( $image->get_original_language_title(), -1 )
+        ? $image->get_original_language_title()
+        : $image->get_original_language_title() . '.';
+    }
 
-			if ( ! is_wp_error( $attachment_id ) ) {
-				require_once ABSPATH . 'wp-admin/includes/image.php';
+    $attachment_id = wp_insert_attachment( $attachment, $upload_file['file'], 0, true );
 
-				// Generate the metadata for the attachment, and update the database record.
-				$attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload_file['file'] );
+    if ( is_wp_error( $attachment_id ) ) {
+      return __( 'Error while inserting attachment...!', 'planet4-medialibrary' );
+    }
 
-				wp_update_attachment_metadata( $attachment_id, $attachment_data );
+    require_once ABSPATH . 'wp-admin/includes/image.php';
 
-				// Add credit to alt field.
-				$alt_text = '' !== $image->get_credit() ? $alt_text . ' ' . $image->get_credit() : $alt_text;
+    // Generate the metadata for the attachment, and update the database record.
+    $attachment_data = wp_generate_attachment_metadata( $attachment_id, $upload_file['file'] );
 
-				// Set the image Alt-Text & image Credit.
-				update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt_text );
-				update_post_meta( $attachment_id, '_credit_text', $image->get_credit() );
+    wp_update_attachment_metadata( $attachment_id, $attachment_data );
 
-				// Set media restriction details.
-				update_post_meta( $attachment_id, '_media_restriction', $image->get_media_restrictions() );
+    // Add credit to alt field.
+    if ( '' !== $image->get_credit() ) {
+      $alt_text .= ' ' . $image->get_credit();
+    }
 
-				return $attachment_id;
-			} else {
-				return __( 'Error while inserting attachment...!', 'planet4-medialibrary' );
-			}
-		} else {
-			return $upload_file['error'];
-		}
+    // Set the image Alt-Text & image Credit.
+    update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt_text );
+    update_post_meta( $attachment_id, '_credit_text', $image->get_credit() );
 
-	}
+    // Set media restriction details.
+    update_post_meta( $attachment_id, '_media_restriction', $image->get_media_restrictions() );
+
+    return $attachment_id;
+
+  }
 
 	/**
 	 * Validate file already exist in WP media, if yes then return image id.
@@ -103,7 +107,7 @@ class MediaHelper {
 	 *
 	 * @return int
 	 */
-	public function file_exists( $filename ) {
+	public function find_attachment_id_for_file( $filename ) {
 		global $wpdb;
 
 		$statement = $wpdb->prepare( "SELECT `post_id` FROM `{$wpdb->postmeta}` WHERE `meta_value` LIKE %s", '%' . $filename . '%' );

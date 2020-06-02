@@ -27,20 +27,4 @@ class MediaImageMapper {
 			->set_original_language_title( $params['original-language-title'] ?? '' )
 			->set_original_language_desc( $params['original-language-description'] ?? '' );
 	}
-
-	/**
-	 * Create a MediaImage objects array from an array containing the required params for the MediaImage objects.
-	 *
-	 * @param array $parameters Array containing arrays of MediaImage parameters.
-	 *
-	 * @return array
-	 */
-	public function get_all_from_array( array $parameters ) {
-		$data = [];
-		foreach ( $parameters as $image_params ) {
-			$data[] = $this->get_from_array( $image_params );
-		}
-
-		return $data;
-	}
 }

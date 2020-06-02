@@ -2,7 +2,7 @@
 
 namespace P4ML\Controllers\Tab;
 
-use P4ML\Api\MediaImageMapper;
+use P4ML\Api\MediaImage;
 use P4ML\Controllers\MediaLibraryApi_Controller;
 use P4ML\Helpers\MediaHelper;
 use P4ML\Views\View;
@@ -104,41 +104,43 @@ if ( ! class_exists( 'GPI_Media_Library_Controller' ) ) {
 		 */
 		public function get_paged_medias() {
 			// If this is an ajax call.
-			if ( wp_doing_ajax() ) {
-				$paged        = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_STRING );
-				$query_string = filter_input( INPUT_GET, 'query-string', FILTER_SANITIZE_STRING );
-
-				$ml_api = new MediaLibraryApi_Controller();
-
-				$params = [];
-
-				if ( '' !== $query_string ) {
-					$params['search_text'] = $query_string;
-				}
-				if ( '' !== $paged ) {
-					$params['pagenumber'] = $paged;
-				}
-
-				$image_list = $ml_api->get_results( $params );
-
-				$error_message = '';
-				if ( \WP_Http::OK !== $image_list['status_code'] ) {
-					$error_message = __( 'Error while fetching data from remote server!!!', 'planet4-medialibrary' );
-				}
-
-				$this->view->ml_search_view(
-					[
-						'data' => [
-							'image_list'    => $image_list['result'],
-							'error_message' => $error_message,
-							'domain'        => 'planet4-medialibrary',
-						],
-					]
-				);
-
-				wp_die();
+			if ( ! wp_doing_ajax() ) {
+        return;
 			}
-		}
+
+      $paged        = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_STRING );
+      $query_string = filter_input( INPUT_GET, 'query-string', FILTER_SANITIZE_STRING );
+
+      $ml_api = new MediaLibraryApi_Controller();
+
+      $params = [];
+
+      if ( '' !== $query_string ) {
+        $params['search_text'] = $query_string;
+      }
+      if ( '' !== $paged ) {
+        $params['pagenumber'] = $paged;
+      }
+
+      $image_list = $ml_api->get_results( $params );
+
+      $error_message = '';
+      if ( \WP_Http::OK !== $image_list['status_code'] ) {
+        $error_message = __( 'Error while fetching data from remote server!!!', 'planet4-medialibrary' );
+      }
+
+      $this->view->ml_search_view(
+        [
+          'data' => [
+            'image_list'    => $image_list['result'],
+            'error_message' => $error_message,
+            'domain'        => 'planet4-medialibrary',
+          ],
+        ]
+      );
+
+      wp_die();
+    }
 
 		/**
 		 * Callback for scroll the next results & search.
@@ -146,54 +148,56 @@ if ( ! class_exists( 'GPI_Media_Library_Controller' ) ) {
 		 */
 		public function get_search_medias() {
 			// If this is an ajax call.
-			if ( wp_doing_ajax() ) {
-				$paged        = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_STRING );
-				$query_string = filter_input( INPUT_GET, 'query-string', FILTER_SANITIZE_STRING );
-				$search_flag  = filter_input( INPUT_GET, 'search_flag', FILTER_SANITIZE_STRING );
+			if ( ! wp_doing_ajax() ) {
+        return;
+      }
 
-				$ml_api = new MediaLibraryApi_Controller();
+      $paged        = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_STRING );
+      $query_string = filter_input( INPUT_GET, 'query-string', FILTER_SANITIZE_STRING );
+      $search_flag  = filter_input( INPUT_GET, 'search_flag', FILTER_SANITIZE_STRING );
 
-				$params = [];
+      $ml_api = new MediaLibraryApi_Controller();
 
-				if ( '' !== $query_string ) {
-					$params['search_text'] = $query_string;
-				}
-				if ( '' !== $paged ) {
-					$params['pagenumber'] = $paged;
-				}
+      $params = [];
 
-				$image_list = $ml_api->get_results( $params );
+      if ( '' !== $query_string ) {
+        $params['search_text'] = $query_string;
+      }
+      if ( '' !== $paged ) {
+        $params['pagenumber'] = $paged;
+      }
 
-				$error_message = '';
-				if ( \WP_Http::OK !== $image_list['status_code'] ) {
-					$error_message = __( 'Error while fetching data from remote server!!!', 'planet4-medialibrary' );
-				}
+      $image_list = $ml_api->get_results( $params );
 
-				if ( 'true' === $search_flag ) {
-					$this->view->ml_search_media_view(
-						[
-							'data' => [
-								'image_list'    => $image_list['result'],
-								'error_message' => $error_message,
-								'domain'        => 'planet4-medialibrary',
-							],
-						]
-					);
-				} else {
-					$this->view->ml_media_view(
-						[
-							'data' => [
-								'image_list'    => $image_list['result'],
-								'error_message' => $error_message,
-								'domain'        => 'planet4-medialibrary',
-							],
-						]
-					);
-				}
+      $error_message = '';
+      if ( \WP_Http::OK !== $image_list['status_code'] ) {
+        $error_message = __( 'Error while fetching data from remote server!!!', 'planet4-medialibrary' );
+      }
 
-				wp_die();
-			}
-		}
+      if ( 'true' === $search_flag ) {
+        $this->view->ml_search_media_view(
+          [
+            'data' => [
+              'image_list'    => $image_list['result'],
+              'error_message' => $error_message,
+              'domain'        => 'planet4-medialibrary',
+            ],
+          ]
+        );
+      } else {
+        $this->view->ml_media_view(
+          [
+            'data' => [
+              'image_list'    => $image_list['result'],
+              'error_message' => $error_message,
+              'domain'        => 'planet4-medialibrary',
+            ],
+          ]
+        );
+      }
+
+      wp_die();
+    }
 
 		/**
 		 * Load assets only on the search page.
@@ -247,29 +251,31 @@ if ( ! class_exists( 'GPI_Media_Library_Controller' ) ) {
 				'errors' => [],
 				'images' => [],
 			];
+
 			foreach ( $selected_images as $image ) {
 				$image_list = $ml_api->get_single_image( $image );
-				if ( is_array( $image_list ) ) {
-					$image      = ( new MediaImageMapper() )->get_from_array( $image_list[0] );
-					$attachment = $helper->file_exists( $image->get_id() );
 
-					if ( empty( $attachment ) ) {
-						$attachment_upload = $helper->upload_file( $image, $media_details_flag );
+				if ( ! is_array( $image_list ) ) {
+          $response['errors'][] = $image_list;
+          continue;
+        }
 
-						if ( is_numeric( $attachment_upload ) ) {
-							$image->set_wordpress_id( $attachment_upload );
-							$response['images'][] = $image;
-						} else {
-							$response['errors'][] = $attachment_upload;
-						}
-					} else {
-						$image->set_wordpress_id( $attachment );
-						$response['images'][] = $image;
-					}
-				} else {
-					$response['errors'][] = $image_list;
-				}
-			}
+        $image = MediaImage::from_api_response( $image_list );
+        $attachment_id = $helper->find_attachment_id_for_file( $image->get_id() );
+
+        if ( empty( $attachment_id ) ) {
+          // Attachment doesn't exist, let's upload it.
+          $attachment_id = $helper->upload_file( $image, $media_details_flag );
+
+          if ( ! is_numeric( $attachment_id ) ) {
+            $response['errors'][] = $attachment_id;
+            continue;
+          }
+        }
+
+        $image->set_wordpress_id( $attachment_id );
+        $response['images'][] = $image;
+      }
 
 			echo wp_json_encode( $response );
 			wp_die();

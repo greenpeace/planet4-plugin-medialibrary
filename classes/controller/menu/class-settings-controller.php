@@ -18,13 +18,13 @@ if ( ! class_exists( 'Settings_Controller' ) ) {
 			$current_user = wp_get_current_user();
 
 			if ( in_array( 'administrator', $current_user->roles, true ) || in_array( 'editor', $current_user->roles, true ) ) {
-				add_menu_page(
+				add_submenu_page(
+					'planet4_settings_navigation',
 					__( 'GPI Media Library', 'planet4-medialibrary' ),
 					__( 'GPI Media Library', 'planet4-medialibrary' ),
 					'manage_options',
-					'mlsettings',
-					[ $this, 'prepare_settings' ],
-					P4ML_ADMIN_DIR . 'images/logo_menu_page_16x16.png'
+					'planet4_mlsettings',
+					[ $this, 'prepare_settings' ]
 				);
 			}
 

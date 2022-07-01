@@ -313,6 +313,6 @@ class MediaImage implements \JsonSerializable {
 	 * @return bool|string
 	 */
 	private function sanitize_url( $url ) {
-		return substr( $url, 0, strrpos( $url, '?' ) );
+		return explode( '?', $url )[0];
 	}
 }

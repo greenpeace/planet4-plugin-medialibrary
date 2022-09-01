@@ -2,7 +2,7 @@
 Contributors: Greenpeace International
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
-Tested up to: 4.9.4
+Tested up to: 6.0.1
 
 Connects Planet4 with the Media Library platform.
 
@@ -20,6 +20,9 @@ Connects Planet4 with the Media Library platform.
 
 
 == Changelog ==
+
+= 1.15 =
+- Update to match new API
 
 = 0.1.0 =
 - Initial Revision 

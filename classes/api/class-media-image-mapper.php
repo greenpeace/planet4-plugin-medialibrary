@@ -21,7 +21,7 @@ class MediaImageMapper {
 			->set_id( (string) $params['SystemIdentifier'] )
 			->set_title( (string) $params['Title'] )
 			->set_caption( (string) $params['Caption'] )
-			->set_credit( $params['copyright'] ?? '' )
+			->set_credit( $params['CoreField.Copyright'] ?? '' )
 			->set_media_restrictions( $params['restrictions'] ?? '' )
 			->set_path_tr1( (string) $params['Path_TR1']['URI'] )
 			->set_original_language_title( $params['original-language-title'] ?? '' )

@@ -30,7 +30,7 @@ if ( ! class_exists( 'Loader' ) ) {
 		 *
 		 * @return Loader
 		 */
-		public static function get_instance( $services = array(), $view_class ): Loader {
+		public static function get_instance( array $services, $view_class ): Loader {
 			! isset( self::$instance ) and self::$instance = new self( $services, $view_class );
 
 			return self::$instance;
@@ -45,7 +45,7 @@ if ( ! class_exists( 'Loader' ) ) {
 		 * @param array  $services The Controller services to inject.
 		 * @param string $view_class The View class name.
 		 */
-		private function __construct( $services = array(), $view_class ) {
+		private function __construct( array $services, $view_class ) {
 			$this->services = $services;
 			$view           = new $view_class();
 
@@ -167,12 +167,6 @@ if ( ! class_exists( 'Loader' ) ) {
 		 * Make clone magic method private, so nobody can clone instance.
 		 */
 		private function __clone() {
-		}
-
-		/**
-		 * Make wakeup magic method private, so nobody can unserialize instance.
-		 */
-		private function __wakeup() {
 		}
 	}
 
